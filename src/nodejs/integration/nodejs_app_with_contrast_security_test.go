@@ -46,20 +46,19 @@ var _ = Describe("CF NodeJS Buildpack", func() {
 		})
 
 		By("Pushing an app with a marketplace provided service", func() {
-			app = cutlass.New(Fixtures("logenv"))
+			app = cutlass.New(Fixtures("simple_app"))
 			PushAppAndConfirm(app)
 
 			app.SetEnv("BP_DEBUG", "true")
-			app.SetEnv("LOG_LEVEL", "debug")
 
 			serviceFromBroker := "contrast-security-service-broker-app-" + cutlass.RandStringRunes(10)
-			Expect(RunCF("create-service-broker", serviceBrokerApp.Name, "username", "password", serviceBrokerURL, "--space-scoped")).To(Succeed())
-			Expect(RunCF("create-service", serviceOffering, "contrast-smart", serviceFromBroker)).To(Succeed())
+			RunCF("create-service-broker", serviceBrokerApp.Name, "username", "password", serviceBrokerURL, "--space-scoped")
+			RunCF("create-service", serviceOffering, "public", serviceFromBroker)
 
 			app.Stdout.Reset()
-			Expect(RunCF("bind-service", app.Name, serviceFromBroker)).To(Succeed())
-			Expect(RunCF("restage", app.Name)).To(Succeed())
-			Expect(app.Stdout.String()).To(ContainSubstring("Contrast Security credentials found"))
+			RunCF("bind-service", app.Name, serviceFromBroker)
+			Expect(app.Restart()).To(Succeed())
+			Expect(app.Stdout.String()).ToNot(ContainSubstring("Contrast Security successfully wrote"))
 		})
 	})
 })

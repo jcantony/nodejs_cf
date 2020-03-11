@@ -20,10 +20,10 @@ func Summary(bpDir string) (string, error) {
 		return "", err
 	}
 
-	hasSubDependencies := false
+	hasModules := false
 	for _, d := range manifest.Dependencies {
-		if len(d.SubDependencies) > 0 {
-			hasSubDependencies = true
+		if len(d.Modules) > 0 {
+			hasModules = true
 			break
 		}
 	}
@@ -32,7 +32,7 @@ func Summary(bpDir string) (string, error) {
 	if len(manifest.Dependencies) > 0 {
 		out = "\nPackaged binaries:\n\n"
 		sort.Sort(manifest.Dependencies)
-		if hasSubDependencies {
+		if hasModules {
 			out += "| name | version | cf_stacks | modules |\n|-|-|-|-|\n"
 		} else {
 			out += "| name | version | cf_stacks |\n|-|-|-|\n"
@@ -41,14 +41,9 @@ func Summary(bpDir string) (string, error) {
 
 	for _, d := range manifest.Dependencies {
 		sort.Strings(d.Stacks)
-		if hasSubDependencies {
-			moduleNames := []string{}
-			for _, dep := range d.SubDependencies {
-				moduleNames = append(moduleNames, dep.Name)
-			}
-			sort.Strings(moduleNames)
-
-			out += fmt.Sprintf("| %s | %s | %s | %s |\n", d.Name, d.Version, strings.Join(d.Stacks, ", "), strings.Join(moduleNames, ", "))
+		if hasModules {
+			sort.Strings(d.Modules)
+			out += fmt.Sprintf("| %s | %s | %s | %s |\n", d.Name, d.Version, strings.Join(d.Stacks, ", "), strings.Join(d.Modules, ", "))
 		} else {
 			out += fmt.Sprintf("| %s | %s | %s |\n", d.Name, d.Version, strings.Join(d.Stacks, ", "))
 		}

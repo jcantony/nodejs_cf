@@ -16,7 +16,7 @@ import (
 	"github.com/cloudfoundry/libbuildpack"
 	"github.com/cloudfoundry/libbuildpack/cutlass/glow"
 	"github.com/cloudfoundry/libbuildpack/packager"
-	"github.com/cloudfoundry/packit/pexec"
+	"github.com/cloudfoundry/packit"
 	"gopkg.in/yaml.v2"
 )
 
@@ -137,7 +137,9 @@ func PackageShimmedBuildpack(bpDir, stack string) (VersionedBuildpackPackage, er
 
 	bpFilePath := os.Getenv("BUILDPACK_FILE")
 	if bpFilePath == "" {
-		cnb2cf := pexec.NewExecutable(glow.ExecutableName)
+		session := DefaultLogger.Session("package-shim")
+
+		cnb2cf := packit.NewExecutable(glow.ExecutableName, session)
 		cli := glow.NewCLI(cnb2cf)
 		archiver := glow.NewArchiver(cli)
 

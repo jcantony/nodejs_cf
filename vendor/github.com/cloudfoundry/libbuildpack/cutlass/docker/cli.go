@@ -1,16 +1,12 @@
 package docker
 
-import (
-	"bytes"
-
-	"github.com/cloudfoundry/packit/pexec"
-)
+import "github.com/cloudfoundry/packit"
 
 const ExecutableName = "docker"
 
 //go:generate faux --interface Executable --output fakes/executable.go
 type Executable interface {
-	Execute(pexec.Execution) error
+	Execute(packit.Execution) (stdout, stderr string, err error)
 }
 
 type CLI struct {
@@ -32,7 +28,7 @@ type BuildOptions struct {
 }
 
 func (c CLI) Build(options BuildOptions) (string, string, error) {
-	execution := pexec.Execution{
+	execution := packit.Execution{
 		Args: []string{"build"},
 	}
 
@@ -60,18 +56,12 @@ func (c CLI) Build(options BuildOptions) (string, string, error) {
 
 	execution.Args = append(execution.Args, options.Context)
 
-	stdout := bytes.NewBuffer(nil)
-	execution.Stdout = stdout
-
-	stderr := bytes.NewBuffer(nil)
-	execution.Stderr = stderr
-
-	err := c.executable.Execute(execution)
+	stdout, stderr, err := c.executable.Execute(execution)
 	if err != nil {
-		return stdout.String(), stderr.String(), err
+		return stdout, stderr, err
 	}
 
-	return stdout.String(), stderr.String(), nil
+	return stdout, stderr, nil
 }
 
 type RunOptions struct {
@@ -82,7 +72,7 @@ type RunOptions struct {
 }
 
 func (c CLI) Run(image string, options RunOptions) (string, string, error) {
-	execution := pexec.Execution{
+	execution := packit.Execution{
 		Args: []string{"run"},
 	}
 
@@ -104,18 +94,12 @@ func (c CLI) Run(image string, options RunOptions) (string, string, error) {
 		execution.Args = append(execution.Args, "bash", "-c", options.Command)
 	}
 
-	stdout := bytes.NewBuffer(nil)
-	execution.Stdout = stdout
-
-	stderr := bytes.NewBuffer(nil)
-	execution.Stderr = stderr
-
-	err := c.executable.Execute(execution)
+	stdout, stderr, err := c.executable.Execute(execution)
 	if err != nil {
-		return stdout.String(), stderr.String(), err
+		return stdout, stderr, err
 	}
 
-	return stdout.String(), stderr.String(), nil
+	return stdout, stderr, nil
 }
 
 type RemoveImageOptions struct {
@@ -123,7 +107,7 @@ type RemoveImageOptions struct {
 }
 
 func (c CLI) RemoveImage(image string, options RemoveImageOptions) (string, string, error) {
-	execution := pexec.Execution{
+	execution := packit.Execution{
 		Args: []string{"image", "rm"},
 	}
 
@@ -133,16 +117,10 @@ func (c CLI) RemoveImage(image string, options RemoveImageOptions) (string, stri
 
 	execution.Args = append(execution.Args, image)
 
-	stdout := bytes.NewBuffer(nil)
-	execution.Stdout = stdout
-
-	stderr := bytes.NewBuffer(nil)
-	execution.Stderr = stderr
-
-	err := c.executable.Execute(execution)
+	stdout, stderr, err := c.executable.Execute(execution)
 	if err != nil {
-		return stdout.String(), stderr.String(), err
+		return stdout, stderr, err
 	}
 
-	return stdout.String(), stderr.String(), nil
+	return stdout, stderr, nil
 }

@@ -60,7 +60,11 @@ func CopyBrats(nodejsVersion string) *cutlass.App {
 	Expect(err).ToNot(HaveOccurred())
 
 	if nodejsVersion != "" {
+		versionMajor := strings.Split(nodejsVersion, ".")[0]
 		bcryptVersion := "*"
+		if versionMajor == "8" {
+			bcryptVersion = "~1.0.3"
+		}
 
 		file, err := ioutil.ReadFile(filepath.Join(dir, "package.json"))
 		Expect(err).ToNot(HaveOccurred())
